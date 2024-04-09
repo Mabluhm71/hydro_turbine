@@ -15,7 +15,7 @@ gpio_pin = 17
 
 def counter():
     global press_count
-    press_count += (2048)
+    press_count += 1
     #print("Rising edge detected! Press count:", press_count)
 
 
