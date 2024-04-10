@@ -26,7 +26,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 start_time = time.time()
 filename = "Output.csv"
 header = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', 'Water Sensor', "RPM"]
-df = pd.DataFrame(columns = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', "RPM", "Time (Seconds)"], )
+df = pd.DataFrame(columns = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', "RPM", "Time (Seconds)", "Input Power", "Output Power", "Efficiency"], )
 
 
 # Initialize the tkinter window
@@ -50,7 +50,10 @@ def update_graph():
         # add time as current_time - start time
         rpm = random.randint(600, 800)
         current_time = (time.time() - start_time)
-        df = pd.concat([df, pd.DataFrame({'Torque (Nm)': [torque], 'Temp1 (V)': [temp1], 'Voltage': [voltage], 'Current':[current], 'Temp2 (V)':[temp2], "RPM": [rpm], "Time (Seconds)": [current_time]})], ignore_index=True)
+        input_power = torque * rpm * 3.14159/30
+        output_power = current * voltage
+        efficency = output_power/input_power * 100
+        df = pd.concat([df, pd.DataFrame({'Torque (Nm)': [torque], 'Temp1 (V)': [temp1], 'Voltage': [voltage], 'Current':[current], 'Temp2 (V)':[temp2], "RPM": [rpm], "Time (Seconds)": [current_time], "Input Power": [input_power], "Output Power": [output_power], "Efficiency":[efficency]})], ignore_index=True)
                     #   , 'Temp1 (V)':temp1, 'Voltage':voltage, 'Current':current, 'Temp2 (V)':temp2})
         i+=1
         
