@@ -39,8 +39,8 @@ def get_rpm():
         else:
             rpm = (count_diff/time_diff) * TPS_to_RPM_conversion
         print("rpm " + str(rpm))
-        i +=1
-        time.sleep(1)
+        return(rpm)
+
 
 def Encoder():
     while True:
@@ -48,9 +48,9 @@ def Encoder():
 
 
 # Create threads
-thread1 = threading.Thread(target=get_rpm)
-thread2 = threading.Thread(target=Encoder)
+# thread1 = threading.Thread(target=get_rpm)
+# thread2 = threading.Thread(target=Encoder)
 
 # Start threads
-thread1.start()
-thread2.start()
+# thread1.start()
+# thread2.start()
