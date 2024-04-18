@@ -24,33 +24,35 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #////////////////////////////////////////////////////////////////////////////////////////
 
 # Constants
+rps = 16.67
+gearbox_ratio = (1/10) * 5
+rpm = rps*60*gearbox_ratio
+#rpm = input_rpm* gearbox_ratio
 start_time = time.time()
 filename = "Output.csv"
-header = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', 'Water Sensor', "RPM"]
-df = pd.DataFrame(columns = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', "RPM", "Time (Seconds)", "Water Sensor", "Input Power", "Output Power", "Efficiency"], )
-
-
-# Create a figure and axis for the graph
-fig, ax = plt.subplots(3, sharey=False)
-fig.subplots_adjust(wspace=0.3, hspace=0.3)
-ax2 = ax[1].twinx()
+df = pd.DataFrame(columns = ['Torque (Nm)', 'Voltage', 'Current', "RPM", "Time (Seconds)", "Input Power", "Output Power", "Efficiency", "Resistance"], )
 
 # Create a function to update the graph with new data every second
 def add_data():
     global df
     global ax2
+    global rpm
     torque, temp1, temp2, voltage, current, temp2, water = run_Sensor()
-    rpm = get_rpm()
+    #rpm = get_rpm()
     # add rpm to concat call below here
     # add time as current_time - start time
     current_time = (time.time() - start_time)
     input_power = torque * rpm * 3.14159/30
     output_power = current * voltage
-    if input_power == 0:
+    if current <= 0: 
+        resistance = 0
+    else:
+        resistance = voltage/current
+    if input_power == 0 or voltage<0:
         efficency = 0
     else:
         efficency = output_power/input_power * 100
-    df = pd.concat([df, pd.DataFrame({'Torque (Nm)': [torque], 'Temp1 (V)': [temp1], 'Voltage': [voltage], 'Current':[current], 'Temp2 (V)':[temp2], "RPM": [rpm], "Time (Seconds)": [current_time], "Water Sensor": [water], "Input Power": [input_power], "Output Power": [output_power], "Efficiency":[efficency]})], ignore_index=True)
+    df = pd.concat([df, pd.DataFrame({'Torque (Nm)': [torque], 'Voltage': [voltage], 'Current':[current], "RPM": [rpm], "Time (Seconds)": [current_time], "Input Power": [input_power], "Output Power": [output_power], "Efficiency":[efficency], "Resistance":[resistance]})], ignore_index=True)
     print(df)
     write_dataframe_to_csv(df, 'data.csv')
 
@@ -60,12 +62,12 @@ def write_dataframe_to_csv(dataframe, filepath):
 
 try:
     
-    thread1 = threading.Thread(target=Encoder) #Initializes Encoder 
-    thread1.start()
+    # thread1 = threading.Thread(target=Encoder) #Initializes Encoder 
+    # thread1.start()
 
     while True:
         add_data()    
-        time.sleep(1)
+        time.sleep(2)
    
     
 except KeyboardInterrupt:

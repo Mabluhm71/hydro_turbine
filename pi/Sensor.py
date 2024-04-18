@@ -26,18 +26,21 @@ from daqhats import mcc128, OptionFlags, HatIDs, HatError, AnalogInputMode, \
 from daqhats_utils import select_hat_device, enum_mask_to_string, \
     input_mode_to_string, input_range_to_string
 import csv
+from statistics import mean
 from Sensor_Conversion import *
 
 # Constants
-chan0 = []
-chan1 = []
-chan2 = []
-chan3 = []
-chan4 = []
-chan5 = []
+
 header = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', 'Water Sensor']
 
-def run():
+def run_Sensor():
+
+    chan0 = []
+    chan1 = []
+    chan2 = []
+    chan3 = []
+    chan4 = []
+    chan5 = []
     """
     This function is executed automatically when the module is run directly.
     """
@@ -49,7 +52,7 @@ def run():
 
 
     mcc_128_num_channels = mcc128.info().NUM_AI_CHANNELS[input_mode]
-    sample_interval = 0.25  # Seconds
+    sample_interval = 0.05  # Seconds
 
     # Ensure low_chan and high_chan are valid.
     if low_chan < 0 or low_chan >= mcc_128_num_channels:
@@ -72,14 +75,14 @@ def run():
     hat.a_in_mode_write(input_mode)
     hat.a_in_range_write(input_range)
 
-    print('\nMCC 128 single data value read example')
-    print('    Functions demonstrated:')
-    print('         mcc128.a_in_read')
-    print('         mcc128.a_in_mode_write')
-    print('         mcc128.a_in_range_write')
-    print('    Input mode: ', input_mode_to_string(input_mode))
-    print('    Input range: ', input_range_to_string(input_range))
-    print('    Channels: {0:d} - {1:d}'.format(low_chan, high_chan))
+    # print('\nMCC 128 single data value read example')
+    # print('    Functions demonstrated:')
+    # print('         mcc128.a_in_read')
+    # print('         mcc128.a_in_mode_write')
+    # print('         mcc128.a_in_range_write')
+    # print('    Input mode: ', input_mode_to_string(input_mode))
+    # print('    Input range: ', input_range_to_string(input_range))
+    # print('    Channels: {0:d} - {1:d}'.format(low_chan, high_chan))
 
 
     # Display the header row for the data table.
@@ -89,7 +92,7 @@ def run():
     # print('')
 
     samples_per_channel = 0
-    while samples_per_channel<10:
+    while samples_per_channel<20:
         # Display the updated samples per channel count
         samples_per_channel += 1
         #print('\r{:17}'.format(samples_per_channel), end='')
@@ -98,16 +101,18 @@ def run():
         for chan in range(low_chan, high_chan + 1):
             value = hat.a_in_read(chan, options)
             if chan == 0: #Torque - This is CH0H on DAQ
-                chan0.append(convert_torque(value)) 
+                chan0.append(convert_torque(value))
+                # chan0.append(value) 
             elif chan == 1: #Temp 1 - This is CH1H on DAQ
                 chan1.append(convert_temp(value))
-                print(value)
             elif chan == 2: #Voltage - This is CH2H on DAQ
                 chan2.append(convert_voltage(value))
+                # chan2.append(value)
             elif chan == 3: # Current - This is CH3H on DAQ
                 chan3.append(convert_current(value))
+                # chan3.append(value)
             elif chan == 4: # Temp 2 - This is CH0L on DAQ
-                chan4.append(convert_voltage(value)) 
+                chan4.append(convert_temp(value)) 
             elif chan == 5: # Water Sensor - This is CH1L on DAQ
                 chan5.append(value)
 
@@ -116,27 +121,19 @@ def run():
             #print(chan0)
             #print(chan1)
 
-        stdout.flush()
+        # stdout.flush()
 
         # Wait the specified interval between reads.
         sleep(sample_interval)
+        torque = round(mean(chan0), 2)
+        temp1 = round(mean(chan1), 2)
+        temp2 = round(mean(chan4), 2)
+        voltage = round(mean(chan2), 2)
+        current = round(mean(chan3), 2)
+        water = round(mean(chan5), 2)
 
-def create_csv_file(filename, headers, *data):
-    """
-    Creates a CSV file with given filename, headers, and data.
-    
-    Args:
-        filename (str): Name of the CSV file to be created.
-        headers (list): List containing headers for the CSV file.
-        *data: Variable length argument containing arrays of data.
-    """
-    with open(filename, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(headers)
-        # Zip data arrays together to iterate over them simultaneously
-        for row in zip(*data):
-            writer.writerow(row)
+        return  torque, temp1, temp2, voltage, current, temp2, water
 
-run()
 
-create_csv_file('output.csv', header, chan0, chan1, chan2, chan3, chan4, chan5)
+
+
