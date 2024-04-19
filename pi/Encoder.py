@@ -16,7 +16,7 @@ button = Button(gpio_pin, pull_up=False)  # If pull_up=True, use pull-up resisto
 def counter():
     global press_count
     press_count += 1
-    print("Rising edge detected! Press count:", press_count)
+    #print("Rising edge detected! Press count:", press_count)
 
 
 def get_rpm():
@@ -38,8 +38,9 @@ def get_rpm():
             rpm = 0
         else:
             rpm = (count_diff/time_diff) * TPS_to_RPM_conversion
-        #print("rpm " + str(rpm))
-        #return(rpm)
+        # print("rpm " + str(rpm))
+        # time.sleep(5)
+        return(rpm)
 
 
 def Encoder():
@@ -47,10 +48,10 @@ def Encoder():
         button.when_pressed = counter
 
 
-# Create threads
-thread1 = threading.Thread(target=get_rpm)
-thread2 = threading.Thread(target=Encoder)
+# # Create threads
+# thread1 = threading.Thread(target=get_rpm)
+# thread2 = threading.Thread(target=Encoder)
 
-# Start threads
-thread1.start()
-thread2.start()
+# # Start threads
+# thread1.start()
+# thread2.start()

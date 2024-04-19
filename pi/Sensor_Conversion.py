@@ -2,10 +2,9 @@
 
 # Define Parameters
 # define encoder sensor parameters
-delta_t = 0.1 # inverse of the encoder sample rate configured in DAQami
 tick_count = 2048 # number of ticks in one revolution
 revs_per_tick = 1 / tick_count # revolutions per tick
-gear_ratio = 3
+gear_ratio = 5
 
 
 def convert_temp(raw_temp): #Output in degrees C
@@ -21,7 +20,7 @@ def convert_current(raw_current):
     return measured_current
 
 def convert_torque(raw_torque):
-    measured_torque = (round(abs(raw_torque) * 10 / gear_ratio, 2)) # conversion equation: (V_sensed[V] * 10[Nm/V]) = Torque[Nm]
+    measured_torque = (round(abs(raw_torque) * 10, 2)) # conversion equation: (V_sensed[V] * 10[Nm/V]) = Torque[Nm]
     return measured_torque
 
 
