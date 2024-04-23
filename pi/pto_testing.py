@@ -4,6 +4,7 @@
 from Encoder import Encoder, get_rpm
 from Sensor import run_Sensor
 from test_data import rand_data
+from gpiozero import LED
 import pandas as pd
 import threading
 import time
@@ -24,6 +25,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #////////////////////////////////////////////////////////////////////////////////////////
 
 # Constants
+waterLED = LED(27)
 gearbox_ratio = 5
 start_time = time.time()
 filename = "Output.csv"
@@ -34,6 +36,8 @@ def add_data():
     global df
     global ax2
     torque, temp1, temp2, voltage, current, temp2, water = run_Sensor()
+    if water > 0.1:
+        water()
     input_rpm = get_rpm()
     gen_rpm = input_rpm *gearbox_ratio
     # add rpm to concat call below here
@@ -56,6 +60,10 @@ def add_data():
 
 def write_dataframe_to_csv(dataframe, filepath):
     dataframe.to_csv(filepath, index=False, header=True)
+
+def water():
+    waterLED.on()
+    
 
 try:
     

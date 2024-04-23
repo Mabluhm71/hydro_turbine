@@ -1,9 +1,9 @@
 #This is the control unit that runs the Raspberry PI DAQ
 
 #from Encoder import Encoder, get_rpm
-from test_Encoder import Encoder, get_rpm
+from Encoder import Encoder, get_rpm
 from Sensor import run_Sensor
-from test_data import rand_data
+from gpiozero import LED
 import pandas as pd
 import threading
 import time
@@ -24,33 +24,43 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #////////////////////////////////////////////////////////////////////////////////////////
 
 # Constants
+waterLED = LED(27)
+gearbox_ratio = 5
 start_time = time.time()
 filename = "Output.csv"
-header = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', 'Water Sensor', "RPM"]
-df = pd.DataFrame(columns = ['Torque (Nm)', 'Temp1 (V)', 'Voltage', 'Current', 'Temp2 (V)', "RPM", "Time (Seconds)", "Water Sensor", "Input Power", "Output Power", "Efficiency"], )
-
+df = pd.DataFrame()
 
 # Create a figure and axis for the graph
 fig, ax = plt.subplots(3, sharey=False)
 fig.subplots_adjust(wspace=0.3, hspace=0.3)
 ax2 = ax[1].twinx()
 
+def waterLight():
+    waterLED.on()
+
 # Create a function to update the graph with new data every second
 def add_data():
     global df
     global ax2
     torque, temp1, temp2, voltage, current, temp2, water = run_Sensor()
-    rpm = get_rpm()
+    if water > 0.1:
+        waterLight()
+    input_rpm = get_rpm()
+    gen_rpm = input_rpm *gearbox_ratio
     # add rpm to concat call below here
     # add time as current_time - start time
     current_time = (time.time() - start_time)
-    input_power = torque * rpm * 3.14159/30
+    input_power = torque * input_rpm * 3.14159/30
     output_power = current * voltage
-    if input_power == 0:
+    if current <= 0: 
+        resistance = 0
+    else:
+        resistance = voltage/current
+    if input_power == 0 or voltage<0:
         efficency = 0
     else:
         efficency = output_power/input_power * 100
-    df = pd.concat([df, pd.DataFrame({'Torque (Nm)': [torque], 'Temp1 (V)': [temp1], 'Voltage': [voltage], 'Current':[current], 'Temp2 (V)':[temp2], "RPM": [rpm], "Time (Seconds)": [current_time], "Water Sensor": [water], "Input Power": [input_power], "Output Power": [output_power], "Efficiency":[efficency]})], ignore_index=True)
+    df = pd.concat([df, pd.DataFrame({'Torque (Nm)': [torque], 'Voltage': [voltage], 'Current':[current], "Gen RPM": [gen_rpm], "Time (Seconds)": [current_time], "Input Power": [input_power], "Output Power": [output_power], "Efficiency":[efficency], "Resistance":[resistance], "Water": [water]})], ignore_index=True)
     print(df)
     write_dataframe_to_csv(df, 'data.csv')
 
