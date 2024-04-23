@@ -34,6 +34,8 @@ df = pd.DataFrame()
 fig, ax = plt.subplots(3, sharey=False)
 fig.subplots_adjust(wspace=0.3, hspace=0.3)
 ax2 = ax[1].twinx()
+window = tk.Tk()
+window.title("Live Updating Data")
 
 def waterLight():
     waterLED.on()
@@ -63,6 +65,18 @@ def add_data():
     df = pd.concat([df, pd.DataFrame({'Torque (Nm)': [torque], 'Voltage': [voltage], 'Current':[current], "Gen RPM": [gen_rpm], "Time (Seconds)": [current_time], "Input Power": [input_power], "Output Power": [output_power], "Efficiency":[efficency], "Resistance":[resistance], "Water": [water]})], ignore_index=True)
     print(df)
     write_dataframe_to_csv(df, 'data.csv')
+        # Generate some new data
+    # Needs to be the x-y values from the main.py function that has all data
+    x = np.linspace(0, 2*np.pi, 100)
+    y = np.sin(random.randint(0,3)*x)
+    # Clear the old data from the axis
+    ax.clear()
+    # Plot the new data
+    ax.plot(x, y)
+    # Redraw the canvas
+    canvas.draw()
+    window.after(1000, add_data)
+    time.sleep(2)
 
 
 def write_dataframe_to_csv(dataframe, filepath):
@@ -73,9 +87,16 @@ try:
     thread1 = threading.Thread(target=Encoder) #Initializes Encoder 
     thread1.start()
 
-    while True:
-        add_data()    
-        time.sleep(1)
+    canvas = FigureCanvasTkAgg(fig, master=window)
+    canvas.get_tk_widget().grid(row=0, column=0)
+
+    # Start the tkinter mainloop
+    add_data()
+    window.mainloop()
+
+    # while True:
+    #     add_data()    
+    #     time.sleep(1)
    
     
 except KeyboardInterrupt:
