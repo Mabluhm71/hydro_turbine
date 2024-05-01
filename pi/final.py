@@ -1,5 +1,5 @@
+#!/usr/bin/env python
 #This is the control unit that runs the Raspberry PI DAQ
-
 #from Encoder import Encoder, get_rpm
 from Encoder import Encoder, get_rpm
 from Sensor import run_Sensor
